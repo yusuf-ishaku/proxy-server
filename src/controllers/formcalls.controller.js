@@ -2,6 +2,8 @@
 /* eslint-disable prettier/prettier */
 import HttpStatus from 'http-status-codes';
 import axios from 'axios';
+import { error } from '@hapi/joi/lib/base';
+import * as memoService from '../services/memoservice';
 
 /**
  * Controller to get all users available
@@ -76,8 +78,7 @@ export const createNewTrainee = async (req, res, next) => {
       sendData.append(key, req.body[key]);
     }
   }
-  try {
-    const data = await axios.post(
+  axios.post(
       'https://dssp.frsc.gov.ng/Trainee/Enroll',
       sendData,
       {
@@ -92,16 +93,56 @@ export const createNewTrainee = async (req, res, next) => {
           Cookie: `__RequestVerificationToken=SFn3sU2O5Gpngi4XLSjvSoYUULv4d9ePNFhQNbSp-Ous7mTsM2MYCT3lXO2Dlf-5MORnbMUutqIUge6OuA04a-l36C41; ASP.NET_SessionId=ia3dqrmgxmxu1cyw5k0ipdqv; .AspNet.ApplicationCookie=Q7H0CDOjFDvgF_Um4CxGRxk04dAN8j4zz87yKjF-S6BTKdaojuG-iWyoPRGiFmtX8UWaL5OqArlk10ijLGMTJ88kLtq3TLAxugBGMSGPoURkTYD-qeG-8xvR5jKKFalXuBLzO6ppATCps-XY0IX3Q-tlnyiSZwkxSThSbzEXf-IruUwzdMvoVH3urvs-McmW0Gd99rjTWPntRDXEEhCN1zqXB6uUrv9Fx3-jydHcRnOiXo8Tyl7tLme42-lmbzMEMWWRJ01yTCzMfDRoiyhw4RSp-dIDUk-X6mA-SsU2bYRMrV2o5TVjFpqnqrjhVQ3-qWwtu-WFvIddjUQUeHXbUQ-zZK_8XfCKIik40QLyQIoEIDWqi1w1SRTObtG-wOtblljr952I5P2YTFywahQsJhnQxTW6zybJey2p8ntSmoSWbMb2-fanzBpWDqHM8yuU_ZowSl4YcM1BlM226xCpoVEAH4LPSJcJNL70L2Cp9ER8jG6ATO2PprQADoPiLttTgOLkGuY7qrohAAAmurGXaSpE0xo`
         }
       }
-    );
-    console.log(data);
-    if(data) {
+    ).then((response) => {
+      console.log(response.data)
+    }).catch((error) => {
+      console.error(`Error: ${error}`)
+    })
+};
+
+/**
+ * Controller to add memotemplate to database
+ * @param {object} req - request
+ * @param {object} res - response
+ * @param {object} next - function
+ */
+
+export const addMemoToDb = async (req, res, next) => {
+  try {
+    const data = await memoService.addMemoTemplateToDb(req.body);
+    if (data) {
       return res.status(HttpStatus.CREATED).json({
-        message: 'Trainee added successfully',
-        data: ''
+        message: 'Memo successfully added',
+        data: {},
+        status: HttpStatus.CREATED
+      })
+    }else {
+      return res.status(HttpStatus.BAD_REQUEST).json({
+        message: 'Server error',
+        data: {},
       })
     }
-  } catch (error) {
-    console.log(error);
+  }catch (error) {
     next(error);
   }
 };
+
+/**
+ * controller to get memo by id
+ * @param {object} req - request
+ * @param {object} res - response
+ * @param {next} next - next function
+ */
+export const getTemplateById = async (req, res, next) => {
+  try {
+    const data = await memoService.getMemoTemplateById(req.params.id);
+    if(data) {
+      return res.status(HttpStatus.OK).json({
+        message: 'Template fetched successfully',
+        data,
+      });
+    }
+  }catch(error) {
+    next(error);
+  }
+}

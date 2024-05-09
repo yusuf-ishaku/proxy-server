@@ -14,9 +14,6 @@ const routes = () => {
   });
   // router.use('/users', userRoute);
   router.use('/getsomedata', formCallsRoute);
-  router.get('/Trainee', (req, res, next) => {
-    console.log(res);
-  });
   return router;
 };
 
